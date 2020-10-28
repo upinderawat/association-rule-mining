@@ -13,7 +13,7 @@ tested on python 3.8.5
   ## FP-Growth Tree
   
 ## TODO:
-* apriori property at line 36 in apriori.py
-* Adjust the prettyPrint at line 10
-* hash based technique needs to be added.
+* ~~apriori property at line 36 in apriori.py~~
+* ~~Adjust the prettyPrint at line 10~~
+* ~~hash based technique needs to be added.~~
 * FP growth Tree

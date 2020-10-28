@@ -2,14 +2,19 @@ import sys
 import os
 import itertools
 from collections import defaultdict
+import time
 
 D = list()
 l_k = defaultdict(int)
 l_pk = defaultdict(int)
 
 def prettyPrint(l_k):
-	print("Itemset:  support_cnt")
-	print(l_k)
+	print("-"*40)
+	print("Itemset {:20} support_cnt".format(""))
+	print("-"*40)
+	for k,v in l_k.items():
+		print("{}{:<20}{}".format(k, "", v))
+	# print(l_k)
 
 def findSubset(c_k, transaction):
 	"""
@@ -22,19 +27,33 @@ def findSubset(c_k, transaction):
 		if( set(itemset).issubset(transaction)):
 			c_k[itemset]+=1
 
-
-def apriori_gen(l_pk):
+def all_frequent(c, l_pk):
 	"""
-		:params
-		:returns
+	checks whether all subsets of size k-1 in c are frequent in 
+	l_pk
+	"""
+	for s in itertools.combinations(c, len(c)-1):
+		if not s in l_pk:
+			return False
+	return True
+
+
+def apriori_gen(l_pk, use_apiori=False):
+	"""
+		:params l_pk frequent itemsets of size k-1
+		:returns c_k candidate itemsets of size k
 	"""
 	c_k = defaultdict(int)
 	for item1 in l_pk:
 		for item2 in l_pk:
 			if item1[:-1] == item2[:-1] and item1[-1] < item2[-1]:
 				c = item1[:-1] + (item1[-1], item2[-1])
-				#apriori property
-				c_k[c] = 0
+				if use_apiori:
+					#apriori property
+					if all_frequent(c, l_pk):
+						c_k[c] = 0
+				else:
+					c_k[c] = 0
 	return c_k
 
 def find_frequent_1_itemset(D):
@@ -71,17 +90,20 @@ def main():
 				transaction = line.split()
 				D.append(tuple(transaction))
 	except Exception as e:
-		print("Error: File {} not found", argv[1])
+		print("Error: File {} not found", sys.argv[1])
 
+	startTime = time.time()
 	l_k = find_frequent_1_itemset(D)
 	k = 2
 	while l_k :
 		l_pk = l_k
-		c_k = apriori_gen(l_k)
+		c_k = apriori_gen(l_k, use_apiori=True)
 		for transaction in D:
 			findSubset(c_k, transaction)
 		l_k = {k: v for k,v in c_k.items() if v >= min_sup}
+	endTime = time.time()
 	prettyPrint(l_pk)
+	print("\nFinished in: ", endTime-startTime)
 
 if __name__ == '__main__':
 	main()
