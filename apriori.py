@@ -23,14 +23,15 @@ def isSubsetOf(itemset, transaction):
 		:params
 		:returns
 	"""
+
 	n, m = len(itemset), len(transaction)
 	i = j = 0
 	while i < n and j < m:
 		if itemset[i] == transaction[j] :
-			i +=1
-			j+=1
+			i += 1
+			j += 1
 		elif itemset[i] > transaction[j]:
-			j+=1
+			j += 1
 		else:
 			break
 
@@ -53,9 +54,10 @@ def apriori_gen(l_pk, use_apiori=False):
 		:returns c_k candidate itemsets of size k
 	"""
 	c_k = defaultdict(int)
+
 	for item1 in l_pk:
 		for item2 in l_pk:
-			if item1[:-1] == item2[:-1] and item1[-1] < item2[-1]:
+			if item1[:-1] == item2[:-1] and int(item1[-1]) < int(item2[-1]):
 				c = item1[:-1] + (item1[-1], item2[-1])
 				if use_apiori:
 					#apriori property
@@ -93,6 +95,22 @@ def main():
 		return
 
 	#read transaction data in D
+	# with open('test1.txt', 'r') as file:
+	# 	data = file.read().replace('\n', ' ')
+	# data = data.split(' -1 -2 ')[:-1]
+	# trs2 = [i.split(' -1 ') for i in data]
+
+	try:
+		file = sys.argv[1]
+		with open(file, "r+") as f:
+			data = f.read()
+			data = data.replace(" -2 ","\n")
+			data = data.replace(" -1 "," ")
+		with open(file, "w+") as f:
+			f.write(data)
+	except Exception as e:
+		print("Error: File {} not found".format(sys.argv[1]))
+		return
 	try:
 		file = sys.argv[1]
 		with open(file, 'r') as f:
@@ -100,21 +118,22 @@ def main():
 				transaction = line.split()
 				D.append(tuple(transaction))
 	except Exception as e:
-		print("Error: File {} not found", sys.argv[1])
-
+		print("Error: File {} not found".format(sys.argv[1]))
+		return
 	startTime = time.time()
 	l_k = find_frequent_1_itemset(D)
 	k = 2
 	while l_k :
 		print("Processing {} frequent itemset".format(k))
-		k+=1
 		l_pk = l_k
-		c_k = apriori_gen(l_k, use_apiori=False)
+		c_k = apriori_gen(l_k, use_apiori=True)
 		for transaction in D:
 			for itemset in c_k.keys():
 				if isSubsetOf(itemset, transaction):
 					c_k[itemset]+=1
 		l_k = {k: v for k,v in c_k.items() if v >= min_sup}
+		print("Total {} frequent itemset found: {}".format(k, len(l_k)))
+		k += 1
 	endTime = time.time()
 	prettyPrint(l_pk)
 	print("\nFinished in: ", endTime-startTime)
