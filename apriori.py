@@ -16,20 +16,29 @@ def prettyPrint(l_k):
 		print("{}{:<20}{}".format(k, "", v))
 	# print(l_k)
 
-def findSubset(c_k, transaction):
+def isSubsetOf(itemset, transaction):
 	"""
 		find the subset of c_k in transaction
 		and updates the count in c_k
 		:params
 		:returns
 	"""
-	for itemset in c_k.keys():
-		if( set(itemset).issubset(transaction)):
-			c_k[itemset]+=1
+	n, m = len(itemset), len(transaction)
+	i = j = 0
+	while i < n and j < m:
+		if itemset[i] == transaction[j] :
+			i +=1
+			j+=1
+		elif itemset[i] > transaction[j]:
+			j+=1
+		else:
+			break
+
+	return i == n
 
 def all_frequent(c, l_pk):
 	"""
-	checks whether all subsets of size k-1 in c are frequent in 
+	checks whether all subsets of size k-1 in c are frequent in
 	l_pk
 	"""
 	for s in itertools.combinations(c, len(c)-1):
@@ -58,7 +67,7 @@ def apriori_gen(l_pk, use_apiori=False):
 
 def find_frequent_1_itemset(D):
 	"""
-		returns: 
+		returns:
 		params:
 	"""
 	for transaction in D:
@@ -75,17 +84,18 @@ def main():
 	try:
 		min_sup = int(sys.argv[2])
 		if min_sup <=0:
-			raise Exception("min_sup can't be negative")  
+			raise Exception("min_sup can't be negative")
 	except ValueError as e:
 		print("Error: min_sup must be integer.")
-		return 
+		return
 	except Exception as e:
 		print(e)
 		return
 
 	#read transaction data in D
 	try:
-		with open(sys.argv[1], 'r') as f:
+		file = sys.argv[1]
+		with open(file, 'r') as f:
 			for line in f.readlines():
 				transaction = line.split()
 				D.append(tuple(transaction))
@@ -96,10 +106,14 @@ def main():
 	l_k = find_frequent_1_itemset(D)
 	k = 2
 	while l_k :
+		print("Processing {} frequent itemset".format(k))
+		k+=1
 		l_pk = l_k
-		c_k = apriori_gen(l_k, use_apiori=True)
+		c_k = apriori_gen(l_k, use_apiori=False)
 		for transaction in D:
-			findSubset(c_k, transaction)
+			for itemset in c_k.keys():
+				if isSubsetOf(itemset, transaction):
+					c_k[itemset]+=1
 		l_k = {k: v for k,v in c_k.items() if v >= min_sup}
 	endTime = time.time()
 	prettyPrint(l_pk)
